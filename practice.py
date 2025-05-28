@@ -1,14 +1,16 @@
 import torch
 
-tensor = torch.tensor([[[0, 1, 2],
-                        [3, 4, 5],
-                        [6, 7, 8]]])
+def get_device():
+  return torch.device(
+      "cuda" if torch.cuda.is_available() else 
+      "mps" if torch.backends.mps.is_available() else
+      "cpu"
+  )
 
-print(f"Dimensions: {tensor.ndim}")
-print(f"Shape: {tensor.shape}")
+tensor = torch.tensor([1.0, 2.0, 3.0])
+print(f"Current device: {tensor.device}")
 
-# Size: [1, 3, 3] because we have 1 matrix with 3 rows and 3 columns
-torch.set_printoptions(precision=4, sci_mode=False)
+device = get_device()
+tensor = tensor.to(device)
 
-random_tensor = torch.rand(5, 6, 6)
-print(f"\n{random_tensor}")
+print(f"Tensor moved to device: {tensor.device}")
