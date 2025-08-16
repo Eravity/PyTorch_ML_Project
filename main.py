@@ -1,66 +1,33 @@
-import torch 
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
+import torch
+from pathlib import Path
 
-# Create a tensor
+from predictionsChart import plot_predictions
+from trainingLoop import train_and_predict
+from workingData import working_data
+from modelSave import load_model
 
-# 1) Scalar
-scalar = torch.tensor(7)
-# print(f"Scalar: {scalar}") # tensor(7)
-# print(f"Dimensions: {scalar.ndim}") # prints scalar dimensions
-# print(f"Item: {scalar.item()}") # prints item 
-# print (f"Shape: {scalar.shape}") # prints shape
+MODEL_FILE = Path("models/ml_model.pth")
 
-# 2) Vector
-vector = torch.tensor([7, 7])
-# print (f"\nVector: {vector}") # tensor([7, 7])
-shape = vector.shape
-# print(f"Shape: {shape}") 
 
-# 3) Matrix
-MATRIX = torch.tensor([[1, 2, 6, 8],
-                      [3, 4, 5, 7]])
+def main():
+  # If a saved model exists, load it (on CPU) and run inference.
+  if MODEL_FILE.exists():
+    print(f"Found saved model at {MODEL_FILE}, loading (CPU)...")
+    model = load_model(MODEL_FILE, device=torch.device("cpu"))
+    X_train, y_train, X_test, y_test = working_data()
+    model.eval()
+    with torch.inference_mode():
+      y_preds = model(X_test)
+  else:
+    print("No saved model found — training a new model (this may take a while)...")
+    X_train, y_train, X_test, y_test, y_preds = train_and_predict()
 
-# print(f"\nMatrix: {MATRIX}")
-# print (f"Shape: {MATRIX.shape}") # prints shape
+  plot_predictions(X_train,
+                   y_train,
+                   X_test,
+                   y_test,
+                   predictions=y_preds)
 
-# 4) Tensor
-TENSOR = torch.tensor([[[1, 2, 3], 
-                       [4, 5, 6],
-                       [7, 8, 9]]])
-# print (f"\nTensor: {TENSOR}")
-# print(f"Shape: {TENSOR.shape}") 
-# print (f"Dimensions: {TENSOR.ndim}") # prints dimensions
-# print(TENSOR[0])
 
-random_tensor = torch.rand(3, 4)
-# print(f"\nRandom Tensor: {random_tensor}")
-
-random_tensor_image = torch.rand(224, 224, 3) # height, width, color channels (Red, Green, Blue)
-
-# create a tensor with zeros
-tensor_zeros = torch.zeros(3, 4)
-# print(f"\nTensor with zeros: {tensor_zeros}")
-
-# create a tensor with ones
-tensor_ones = torch.ones(3, 4)
-# print(f"\nTensor with zeros: {tensor_ones}")
-
-# print(tensor_ones.dtype) # prints data type of tensor
-
-# Creating a range of tensors and tensors-like
-one_to_ten = torch.arange(1, 11)
-
-# tensors-like
-ten_ones = torch.ones_like(one_to_ten)
-# print(ten_ones)
-
-# Float 32 tensor
-float_32_tensor = torch.tensor([1.0, 3.0, 3.0], 
-                               dtype=None, # Specify the data type, none means default (32 bit float)
-                               device=None, # Specify the device, none means CPU
-                               requires_grad=False # Wether to track or not gradients for the tensor
-                               )
-
-print(float_32_tensor.type(torch.float16).dtype)
+if __name__ == "__main__":
+  main()
